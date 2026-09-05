@@ -1,0 +1,62 @@
+# RecoverPay AI — full local stack: web, api, worker, postgres, redis.
+# Web proxies /api/v1/* to the api service, so the browser stays same-origin.
+services:
+  web:
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    ports: ["3000:3000"]
+    environment:
+      NODE_ENV: production
+    depends_on: [api]
+    restart: unless-stopped
+
+  api:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    ports: ["8000:8000"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://recoverpay:recoverpay@postgres:5432/recoverpay}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_FROM_SMS: ${TWILIO_FROM_SMS:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      FOUNDER_EMAIL: ${FOUNDER_EMAIL:-}
+      FOUNDER_PHONE: ${FOUNDER_PHONE:-}
+      SEED_ON_BOOT: ${SEED_ON_BOOT:-true}
+      AUTO_TICK: "true"
+    volumes: [api-data:/data]
+    depends_on: [postgres, redis]
+    restart: unless-stopped
+
+  worker:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    command: ["python", "-m", "app.workers.scheduler"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://recoverpay:recoverpay@postgres:5432/recoverpay}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+      AUTO_TICK: "true"
+    volumes: [api-data:/data]
+    depends_on: [postgres]
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: recoverpay
+      POSTGRES_PASSWORD: recoverpay
+      POSTGRES_DB: recoverpay
+    volumes: [pg-data:/var/lib/postgresql/data]
+
+  redis:
+    image: redis:7-alpine
+    volumes: [redis-data:/data]
+
+volumes:
+  api-data:
+  pg-data:
+  redis-data:

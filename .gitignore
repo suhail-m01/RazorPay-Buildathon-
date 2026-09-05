@@ -1,0 +1,15 @@
+node_modules
+.next
+__pycache__
+*.pyc
+.env
+recoverpay.db
+scripts/demo_contacts.py
+scripts/synthetic_dataset.json
+apps/api/private.key
+private.key
+# Database and backups
+apps/api/backups/
+*.db
+*.sqlite
+*.sqlite3
