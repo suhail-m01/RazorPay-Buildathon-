@@ -10,8 +10,9 @@ COPY scripts ./scripts
 COPY alembic.ini .
 
 ENV DATABASE_URL=sqlite+aiosqlite:////data/recoverpay.db \
-    AUTO_TICK=true
-    
+    AUTO_TICK=true \
+    PYTHONPATH=/srv
+
 EXPOSE 8000
 
 # Schema ensure + optional seed + serve (worker service runs `python -m app.workers.scheduler` instead)
