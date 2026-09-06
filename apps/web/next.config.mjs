@@ -1,12 +1,23 @@
 /** @type {import('next').NextConfig} */
+
+const backendUrl =
+  process.env.BACKEND_URL || "http://127.0.0.1:8000";
+
 const nextConfig = {
   async rewrites() {
-    // Same-origin API: the browser only ever talks to this Next app, which proxies
-    // to the FastAPI service (cookies stay first-party; preview iframes work).
     return [
-      { source: "/api/v1/:path*", destination: "http://127.0.0.1:8000/api/v1/:path*" },
-      { source: "/health", destination: "http://127.0.0.1:8000/health" },
-      { source: "/webhook/:path*", destination: "http://127.0.0.1:8000/webhook/:path*" },
+      {
+        source: "/api/v1/:path*",
+        destination: `${backendUrl}/api/v1/:path*`,
+      },
+      {
+        source: "/health",
+        destination: `${backendUrl}/health`,
+      },
+      {
+        source: "/webhook/:path*",
+        destination: `${backendUrl}/webhook/:path*`,
+      },
     ];
   },
 };
